@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customers API</title>
+  <!-- Agrega el enlace al archivo CSS de Bootstrap -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+
+  <!-- Agrega el enlace al archivo JavaScript de Highcharts -->
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+</head>
+<body onload="getStations()" class="">
+<div></div>
+<div class="container">
+  <div class="jumbotron">
+    <h1 class="display-4">My API</h1>
+    <p class="lead">Welcome to the Customers API</p>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" href="/cine">API</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <h2 class="mb-4">Customers</h2>
+  <table class="table table-striped table-hover">
+    <thead class="table-dark">
+    <tr>
+      <th>ID</th>
+      <th>Temperature</th>
+      <th>RH</th>
+      <th>Lux</th>
+      <th>Pulsimeter</th>
+    </tr>
+    </thead>
+    <tbody id="Body"></tbody>
+  </table>
+
+  <!-- Agrega un contenedor para la gráfica -->
+  <div id="chartContainer"></div>
+</div>
+
+<!-- Agrega el enlace al archivo JavaScript de Bootstrap (opcional, para ciertas funcionalidades) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Obtener estaciones
+  function getStations() {
+    fetch("/stations")
+      .then((response) => response.json())
+      .then((data) => {
+        const body = document.getElementById("Body");
+        body.innerHTML = "";
+
+        data.forEach((station) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+              <td>${station._id}</td>
+              <td>${station.temperature}</td>
+              <td>${station.humidity}</td>
+              <td>${station.light}</td>
+              <td>${station.pulsimeter}</td>
+            `;
+          body.appendChild(row);
+        });
+
+        // Llamar a la función para generar la gráfica
+        generateChart(data);
+      })
+      .catch((error) => console.error(error));
+  }
+
+  // Generar la gráfica utilizando los datos recibidos
+  function generateChart(data) {
+    // Obtener los valores de temperatura y pulsímetro
+    const temperatureData = data.map((station) => station.temperature);
+    const RHData = data.map((station) => station.humidity);
+    const luxData = data.map((station) => station.light);
+    const pulsimeterData = data.map((station) => station.pulsimeter);
+
+    // Crear la configuración de la gráfica
+    const chartOptions = {
+      chart: {
+        type: 'line'
+      },
+      title: {
+        text: 'Temperature, Humidity, Light and Pulsimeter Data'
+      },
+      xAxis: {
+        categories: temperatureData.map((_, index) => index + 1),
+        title: {
+          text: 'Data Point'
+        }
+      },
+      yAxis: [
+        {
+          title: {
+            text: 'Temperature'
+          }
+        },
+        {
+          title: {
+            text: 'RH'
+          }
+        },
+        {
+          title: {
+            text: 'Lux'
+          },
+          opposite:true
+        },
+        {
+          title: {
+            text: 'Pulsimeter'
+          },
+          opposite: true
+        }
+      ],
+      series: [
+        {
+          name: 'Temperature',
+          data: temperatureData,
+          yAxis: 1
+        },
+        {
+          name: 'RH',
+          data: RHData,
+          yAxis: 1
+        },
+        {
+          name: 'Lux',
+          data: luxData,
+          yAxis: 0
+        },
+        {
+          name: 'Pulsimeter',
+          data: pulsimeterData,
+          yAxis: 1
+        }
+      ]
+    };
+
+    // Crear la gráfica utilizando Highcharts
+    Highcharts.chart('chartContainer', chartOptions);
+  }
+</script>
+</body>
+</html>
