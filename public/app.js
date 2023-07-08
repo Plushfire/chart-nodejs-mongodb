@@ -43,7 +43,14 @@ app.post("/stations", async (req, res) => {
       return res.status(400).send("Missing required fields");
     }
 
-    const station = new Station({ temperature, humidity, light, pulsimeter });
+    const station = new Station({
+      temperature,
+      humidity,
+      light,
+      pulsimeter,
+      timestamp: new Date() // Agregar el timestamp actual
+    });
+
     await station.save();
 
     res.send("Station created");
@@ -52,6 +59,7 @@ app.post("/stations", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
 
 app.put("/stations/:id", async (req, res) => {
   const { id } = req.params;
